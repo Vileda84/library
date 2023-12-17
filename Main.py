@@ -20,22 +20,22 @@ def select_all_availabily(conn):
 
 
 def initial_menu():
-    """Asks user to choose one of the options below:
-    1.Suggestions
-    2.Popular books
-    3.Borrow a book
-    4.User History Stats
-
-    Raises:
-        ValueError: For numbers >5
+    """This function asking user to choose one of the options from the Menu
 
     Returns:
-        int: the selection of the user
+        The user's choice
     """
-    user_input=int(input("Choose on of the following options: \n1.Suggestions \n2.Popular books \n3.Search \n4.User History Stats: "))
-    if user_input>4:
-        raise ValueError('You must choose one selection between 1 and 4')
-    return user_input
+    while True:
+        try:
+            user_input=int(input("Choose on of the following options: \n1.Suggestions \n2.Popular books \n3.Borrow a book \n4.Return a book \n5.User History Stats: "))
+            if user_input<6:
+                return user_input
+            else:
+                print("You have to select between 1 and 5")
+        except ValueError as e:
+            print('You have to type a number')
+
+
 
 def summaries(database):
     conn = create_connection(database)
@@ -59,20 +59,19 @@ def suggestions(database):
     #create a dataframe that contains books of the history table and their genres and names by the book table
     query = 'SELECT books.genre_id, books.name,history.book_id FROM books JOIN history ON books.id=history.book_id '
     df = pd.read_sql_query(query, conn)
-    print (df)
     #Finds the favourite genre of the user by counting the books for each genre, and the max number in the column
     count=df.groupby('genre_id').size().reset_index(name='genre_count')
     find_max = count['genre_count'].idxmax()
     favourite_genre = count.loc[find_max, 'genre_count']
-    print(favourite_genre)
     #From the books table selects all the tables with the favourite genre of the user and displays the list of the books as suggestions
     query_2='SELECT * FROM books'
     df_2=pd.read_sql_query(query_2, conn)
     same_genre_books=df_2["genre_id"] == favourite_genre
     suggestions=df_2[same_genre_books]
+    pd.set_option('display.max_columns', None)
     #close database connection
     conn.close()
-    print(suggestions)
+    print(f'Below you can find our suggestions: \n{suggestions}')
 
 
 def popular_books(database):
@@ -91,7 +90,7 @@ def popular_books(database):
     pd.set_option('display.max_columns', None)
     #close database connection
     conn.close()
-    print(top_5)
+    print(f'Current Top 5 books: \n{top_5}')
 
 
 def search_book(database):
@@ -134,25 +133,28 @@ def borrow_book(database):
     df = pd.read_sql_query(query, conn)
     #Prompt the user to input the book id
     while True:
-        user_input = int(input("Type the book id of the book you want to borrow: "))
-        #if book exists will check if it is available and if it is will make it unavailable
-        if user_input in df['book_id'].values:
-            if df.loc[df['book_id'] == user_input, 'available'].values[0]:
-                #book availabilty changes to unavailable
-                updated_availability=0
-                df.loc[df['book_id'] == user_input, 'available']=updated_availability
-                #updates the database
-                df.to_sql('availability', conn, if_exists='replace')
-                select_all_availabily(conn)
-                print("Book is ready to collect. Database has been updated")
-                break
+        try:
+            user_input = int(input("Type the book id of the book you want to borrow: "))
+            #if book exists will check if it is available and if it is will make it unavailable
+            if user_input in df['book_id'].values:
+                if df.loc[df['book_id'] == user_input, 'available'].values[0]:
+                    #book availabilty changes to unavailable
+                    updated_availability=0
+                    df.loc[df['book_id'] == user_input, 'available']=updated_availability
+                    #updates the database
+                    df.to_sql('availability', conn, if_exists='replace')
+                    select_all_availabily(conn)
+                    print("Book is ready to collect. Database has been updated")
+                    break
+                else:
+                    print(f"Book id {user_input} is not available.")
+                    print(df)
+                    break
             else:
-                print(f"Book id {user_input} is not available.")
-                break
-        else:
-            print("This book id doesn't exist")
-    conn.close()
-
+                    print("This book id doesn't exist")
+        except ValueError as e:
+            print(e)
+            print('You have to type a book id')
 def return_book(database):
     """This function checks if the book_id the user inputs exists,
     and if exists and is unavailble it makes it available and updates the database.
@@ -167,23 +169,26 @@ def return_book(database):
     df = pd.read_sql_query(query, conn)
     #Prompt the user to input the book id
     while True:
-        user_input = int(input("Type the book id of the book you want to return: "))
-        #if book exists will check if it is unavailable and if it is will make it available
-        if user_input in df['book_id'].values:
-            if not df.loc[df['book_id'] == user_input, 'available'].values[0]:
-                #book availabilty changes to unavailable
-                updated_availability=1
-                df.loc[df['book_id'] == user_input, 'available']=updated_availability
-                #updates the database
-                df.to_sql('availability', conn, if_exists='replace')
-                select_all_availabily(conn)
-                print("Book has been returned. Database has been updated")
-                break
+        try:
+            user_input = int(input("Type the book id of the book you want to return: "))
+            #if book exists will check if it is unavailable and if it is will make it available
+            if user_input in df['book_id'].values:
+                if not df.loc[df['book_id'] == user_input, 'available'].values[0]:
+                    #book availabilty changes to unavailable
+                    updated_availability=1
+                    df.loc[df['book_id'] == user_input, 'available']=updated_availability
+                    #updates the database
+                    df.to_sql('availability', conn, if_exists='replace')
+                    select_all_availabily(conn)
+                    print("Book has been returned. Database has been updated")
+                    break
+                else:
+                    print(f"Book id exists. You have typed wrong book id.")
             else:
-                print(f"Book id exists. You have typed wrong book id.")
-        else:
-            print("This book id doesn't exist")
-    conn.close()
+                print("This book id doesn't exist")
+        except ValueError as e:
+            print(e)
+            print('You have to type a book id')
 
 
 
@@ -203,8 +208,15 @@ def main():
     # Checking if library exists. If exists a menu will display
     file_path="C:\sqlite\db\library.db"
     if os.path.exists(file_path):
-        first_selection=initial_menu()
-        return_book(file_path)
+        selection=initial_menu()
+        if selection==1:
+            suggestions(file_path)
+        elif selection==2:
+            popular_books(file_path)
+        elif selection==3:
+            borrow_book(file_path)
+        else:
+            return_book(file_path)
 
     # If the library doesn't exist it creates a new one
     else:
