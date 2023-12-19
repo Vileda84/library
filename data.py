@@ -98,7 +98,7 @@ def generate_fake_genre():
     fake_name=f'genre{random.randint(1,5)}'
 
     return{
-        'name':fake_name
+        'genre':fake_name
     }
 
 def insert_genres(num_genres):
@@ -111,7 +111,7 @@ def insert_genres(num_genres):
     conn = create_connection(database)
     for _ in range(num_genres):
         genre=generate_fake_genre()
-        genre_values=[genre['name']]
+        genre_values=[genre['genre']]
         genre_id=create_new_genre(conn, genre_values)
 
 def generate_fake_user_history():

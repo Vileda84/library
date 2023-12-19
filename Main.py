@@ -3,6 +3,24 @@ from data import *
 import os.path
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+def select_all_history(conn):
+    """
+    Query all rows in the books table
+    :param conn: the Connection object
+    :return:all availabily
+    """
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM history")
+
+    rows = cur.fetchall()
+
+    for row in rows:
+        print(row)
+
 
 def select_all_availabily(conn):
     """
@@ -121,7 +139,8 @@ def search_book(database):
 
 def borrow_book(database):
     """This function checks if the book_id the user inputs exists,
-    and if exists and is available it makes it unavailable.
+    and if exists and is available it makes it unavailable. 
+    If the book is available and it is the first time the user borrows it , adds the book on History
 
     Args:
         database: The library database
@@ -142,8 +161,17 @@ def borrow_book(database):
                     updated_availability=0
                     df.loc[df['book_id'] == user_input, 'available']=updated_availability
                     #updates the database
-                    df.to_sql('availability', conn, if_exists='replace')
-                    select_all_availabily(conn)
+                    df.to_sql('availability', conn, if_exists='replace', index=False)
+                    query_history='SELECT * FROM history'
+                    df_history = pd.read_sql_query(query_history, conn)
+                    #checks if the user has borrowed the book again
+                    if user_input in df_history['book_id'].values:
+                        print ('Book has been borrowed in the past')
+                    else:
+                        #adds the book in history if it is the first time that has been borrowed
+                        df_history.loc[len(df_history.index)] =[len(df_history)+1, user_input]
+                        df_history.to_sql('history', conn, if_exists='replace', index=False)
+                    select_all_history(conn)
                     print("Book is ready to collect. Database has been updated")
                     break
                 else:
@@ -155,6 +183,8 @@ def borrow_book(database):
         except ValueError as e:
             print(e)
             print('You have to type a book id')
+
+
 def return_book(database):
     """This function checks if the book_id the user inputs exists,
     and if exists and is unavailble it makes it available and updates the database.
@@ -178,7 +208,7 @@ def return_book(database):
                     updated_availability=1
                     df.loc[df['book_id'] == user_input, 'available']=updated_availability
                     #updates the database
-                    df.to_sql('availability', conn, if_exists='replace')
+                    df.to_sql('availability', conn, if_exists='replace', index=False)
                     select_all_availabily(conn)
                     print("Book has been returned. Database has been updated")
                     break
@@ -190,6 +220,19 @@ def return_book(database):
             print(e)
             print('You have to type a book id')
 
+def user_history(database):
+     #creates the database connection
+    conn=create_connection(database)
+    #creates a query to bring all the genres user has read
+    query='SELECT genres.genre FROM history JOIN books ON history.book_id=books.id JOIN genres ON books.genre_id=genres.id '
+    df = pd.read_sql_query(query, conn)
+    print(df)
+    #creates a dataframe that counts the amount of books from each genre user read
+    count=df.groupby('genre').size().reset_index(name='genre_total')
+    #creates a bar plot with the genre stats
+    sns.barplot(x='genre', y='genre_total', data=count,  hue="genre")
+    plt.show()
+    conn.close()
 
 
 
@@ -215,8 +258,10 @@ def main():
             popular_books(file_path)
         elif selection==3:
             borrow_book(file_path)
-        else:
+        elif selection==4:
             return_book(file_path)
+        else:
+            user_history(file_path)
 
     # If the library doesn't exist it creates a new one
     else:
@@ -226,8 +271,18 @@ def main():
             print(e)
         print('Database has been created')
         add_data()
-        first_selection=initial_menu()
-        print(first_selection)
+        selection=initial_menu()
+        if selection==1:
+            suggestions(file_path)
+        elif selection==2:
+            popular_books(file_path)
+        elif selection==3:
+            borrow_book(file_path)
+        elif selection==4:
+            return_book(file_path)
+        else:
+            user_history(file_path)
+
 
 
 

@@ -82,7 +82,7 @@ def create_new_genre(conn, genre):
     :param genre:
     :return: genre id
     """
-    sql = ''' INSERT INTO genres(name)
+    sql = ''' INSERT INTO genres(genre)
               VALUES(?) '''
     cur = conn.cursor()
     cur.execute(sql, genre)
@@ -151,7 +151,7 @@ def create_database(database):
 #Gentre> Gentre ID, Gentre name
     sql_create_genres_table = """ CREATE TABLE IF NOT EXISTS genres (
                                         id integer PRIMARY KEY,
-                                        name text NOT NULL
+                                        genre text NOT NULL
                                     ); """
 
  # create a database connection
