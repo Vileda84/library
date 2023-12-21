@@ -1,8 +1,18 @@
 from faker import Faker
 import random
+from database_classes import *
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Text
+from sqlalchemy.orm import sessionmaker
 from database import *
 
-
+def create_connection(database_path):
+    """ create a database connection to the database
+        specified by database_path
+    :param database_path: database file
+    :return: Connection object or None
+    """
+    engine = create_engine(database_path, echo=True)
+    return engine
 
 def generate_fake_book():
     """Creates fake data for books table
@@ -16,14 +26,14 @@ def generate_fake_book():
     fake_summary=fake.text(max_nb_chars=160)
     fake_review=random.randint(1,5)
 
-    return{
-        'name':fake_name,
-        'isbn':fake_isbn,
-        'author_id':fake_author,
-        'genre_id':fake_genre,
-        'summary':fake_summary,
-        'review':fake_review
-    }
+    return Book(
+            name=fake_name,
+            isbn=fake_isbn,
+            author_id=fake_author,
+            genre_id=fake_genre,
+            summary=fake_summary,
+            review=fake_review
+        )
 
 def insert_books(num_books):
     """Inserts the data on books table
@@ -31,12 +41,15 @@ def insert_books(num_books):
     Args:
         num_books (integer):number of rows
     """
-    database = r"C:\sqlite\db\library.db"
-    conn = create_connection(database)
+    database ='sqlite:///library.db'
+    engine = create_connection(database)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
     for _ in range(num_books):
-        book=generate_fake_book()
-        book_values=(book['name'],book['isbn'],book['author_id'],book['genre_id'], book['summary'], book['review'])
-        book_id=create_new_book(conn, book_values)
+        new_book = generate_fake_book()
+        session.add(new_book)
+        session.commit()
 
 def generate_fake_availability(i):
     """Creates fake data for availabilty table
@@ -45,10 +58,10 @@ def generate_fake_availability(i):
     fake_book_id=i
     fake_available=random.choice([True, False])
 
-    return{
-        'book_id':fake_book_id,
-        'available':fake_available
-    }
+    return Availability(
+        book_id=fake_book_id,
+        available=fake_available
+    )
 
 def insert_availability(num_books):
     """Inserts the data on availabilty table
@@ -56,12 +69,14 @@ def insert_availability(num_books):
     Args:
         num_books (integer):number of rows
     """
-    database = r"C:\sqlite\db\library.db"
-    conn = create_connection(database)
+    database ='sqlite:///library.db'
+    engine = create_connection(database)
+    Session = sessionmaker(bind=engine)
+    session = Session()
     for i in range(num_books):
-        availability=generate_fake_availability(i)
-        availability_values=(availability['book_id'],availability['available'])
-        availability_id=create_new_availability(conn, availability_values)
+        new_availability = generate_fake_availability()
+        session.add(new_availability)
+        session.commit()
 
 
 def generate_fake_author():
@@ -72,10 +87,10 @@ def generate_fake_author():
     fake_first_name=fake.first_name()
     fake_last_name=fake.last_name()
 
-    return{
-        'first_name':fake_first_name,
-        'last_name':fake_last_name
-    }
+    return Author(
+        first_name=fake_first_name,
+        last_name=fake_last_name
+    )
 
 def insert_authors(num_authors):
     """Inserts the data on authors table
@@ -83,12 +98,14 @@ def insert_authors(num_authors):
     Args:
         num_authors (integer):number of rows
     """
-    database = r"C:\sqlite\db\library.db"
-    conn = create_connection(database)
+    database ='sqlite:///library.db'
+    engine = create_connection(database)
+    Session = sessionmaker(bind=engine)
+    session = Session()
     for _ in range(num_authors):
-        author=generate_fake_author()
-        author_values=(author['first_name'],author['last_name'])
-        author_id=create_new_author(conn, author_values)
+        new_author = generate_fake_author()
+        session.add(new_author)
+        session.commit()
 
 
 def generate_fake_genre():
@@ -97,9 +114,9 @@ def generate_fake_genre():
     """
     fake_name=f'genre{random.randint(1,5)}'
 
-    return{
-        'genre':fake_name
-    }
+    return Genre(
+        genre=fake_name
+    )
 
 def insert_genres(num_genres):
     """Inserts the data on books table
@@ -107,12 +124,14 @@ def insert_genres(num_genres):
     Args:
         num_books (integer):number of rows
     """
-    database = r"C:\sqlite\db\library.db"
-    conn = create_connection(database)
+    database ='sqlite:///library.db'
+    engine = create_connection(database)
+    Session = sessionmaker(bind=engine)
+    session = Session()
     for _ in range(num_genres):
-        genre=generate_fake_genre()
-        genre_values=[genre['genre']]
-        genre_id=create_new_genre(conn, genre_values)
+        new_genre = generate_fake_genre()
+        session.add(new_genre)
+        session.commit()
 
 def generate_fake_user_history():
     """Creates fake data for user_history table
@@ -120,9 +139,9 @@ def generate_fake_user_history():
     """
     fake_book_id=random.randint(1,50)
 
-    return{
-        'book_id':fake_book_id
-    }
+    return History(
+        book_id=fake_book_id
+    )
 
 def insert_user_history(num_books):
     """Inserts the data on books table
@@ -130,12 +149,15 @@ def insert_user_history(num_books):
     Args:
         num_books (integer):number of rows
     """
-    database = r"C:\sqlite\db\library.db"
-    conn = create_connection(database)
+    database ='sqlite:///library.db'
+    engine = create_connection(database)
+    Session = sessionmaker(bind=engine)
+    session = Session()
     for _ in range(num_books):
-        history=generate_fake_user_history()
-        history_values=[history['book_id']]
-        history_id=create_new_user_history(conn, history_values)
+        new_history = generate_fake_user_history()
+        session.add(new_history)
+        session.commit()
+
 
 
 

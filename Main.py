@@ -5,7 +5,16 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from database_classes import *
 
+def create_connection(database_path):
+    """ create a database connection to the database
+        specified by database_path
+    :param database_path: database file
+    :return: Connection object or None
+    """
+    engine = create_engine(database_path, echo=True)
+    return engine
 
 def select_all_history(conn):
     """
@@ -139,7 +148,7 @@ def search_book(database):
 
 def borrow_book(database):
     """This function checks if the book_id the user inputs exists,
-    and if exists and is available it makes it unavailable. 
+    and if exists and is available it makes it unavailable.
     If the book is available and it is the first time the user borrows it , adds the book on History
 
     Args:
