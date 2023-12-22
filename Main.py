@@ -16,6 +16,21 @@ def create_connection(database_path):
     engine = create_engine(database_path, echo=True)
     return engine
 
+def create_connection_sqlite(db_file):
+    """ create a database connection to the SQLite database
+        specified by db_file
+    :param db_file: database file
+    :return: Connection object or None
+    """
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        return conn
+    except Error as e:
+        print(e)
+
+    return conn
+
 def select_all_history(conn):
     """
     Query all rows in the books table
@@ -82,7 +97,7 @@ def suggestions(database):
         database: the library database
     """
     #create database connection
-    conn = create_connection(database)
+    conn = create_connection_sqlite(database)
     #create a dataframe that contains books of the history table and their genres and names by the book table
     query = 'SELECT books.genre_id, books.name,history.book_id FROM books JOIN history ON books.id=history.book_id '
     df = pd.read_sql_query(query, conn)
@@ -108,7 +123,7 @@ def popular_books(database):
         database: the library database
     """
     #create database connection
-    conn = create_connection(database)
+    conn = create_connection_sqlite(database)
     #create the books table in dataframe
     query='SELECT * FROM books'
     df=pd.read_sql_query(query, conn)
@@ -127,7 +142,7 @@ def search_book(database):
         database: the library database
     """
     #create database connection
-    conn = create_connection(database)
+    conn = create_connection_sqlite(database)
     #create the books table in dataframe
     query='SELECT * FROM books'
     df=pd.read_sql_query(query, conn)
@@ -155,7 +170,7 @@ def borrow_book(database):
         database: The library database
     """
     #create database connection
-    conn=create_connection(database)
+    conn=create_connection_sqlite(database)
     #create the availability table in dataframe
     query='SELECT * FROM availability'
     df = pd.read_sql_query(query, conn)
@@ -202,7 +217,7 @@ def return_book(database):
         database: The library database
     """
     #create database connection
-    conn=create_connection(database)
+    conn=create_connection_sqlite(database)
     #create the availability table in dataframe
     query='SELECT * FROM availability'
     df = pd.read_sql_query(query, conn)
@@ -231,7 +246,7 @@ def return_book(database):
 
 def user_history(database):
      #creates the database connection
-    conn=create_connection(database)
+    conn=create_connection_sqlite(database)
     #creates a query to bring all the genres user has read
     query='SELECT genres.genre FROM history JOIN books ON history.book_id=books.id JOIN genres ON books.genre_id=genres.id '
     df = pd.read_sql_query(query, conn)
@@ -245,12 +260,12 @@ def user_history(database):
 
 
 
-def add_data():
-    insert_books(50)
-    insert_availability(50)
-    insert_authors(10)
-    insert_genres(5)
-    insert_user_history(10)
+def add_data(database):
+    insert_books(50,database)
+    insert_availability(50,database)
+    insert_authors(10,database)
+    insert_genres(5,database)
+    insert_user_history(10,database)
     print('Database has been updated')
 
 
@@ -258,39 +273,45 @@ def main():
     """Main function of library
     """
     # Checking if library exists. If exists a menu will display
-    file_path="C:\sqlite\db\library.db"
-    if os.path.exists(file_path):
+    file_path= 'sqlite:///library.db'
+
+    # Extract the file path from the connection string
+    # The file path is everything after 'sqlite:///'
+    # For example, 'sqlite:///library.db' becomes 'library.db'
+    file_name = file_path.split('sqlite:///')[-1]
+
+    if os.path.exists(file_name):
         selection=initial_menu()
         if selection==1:
-            suggestions(file_path)
+            suggestions(file_name)
         elif selection==2:
-            popular_books(file_path)
+            popular_books(file_name)
         elif selection==3:
-            borrow_book(file_path)
+            borrow_book(file_name)
         elif selection==4:
-            return_book(file_path)
+            return_book(file_name)
         else:
-            user_history(file_path)
+            user_history(file_name)
 
     # If the library doesn't exist it creates a new one
     else:
         try:
-            create_database(file_path)
+            Base.metadata.create_all(engine)
         except Error as e:
             print(e)
         print('Database has been created')
-        add_data()
+        add_data(file_path)
         selection=initial_menu()
         if selection==1:
-            suggestions(file_path)
+            suggestions(file_name)
         elif selection==2:
-            popular_books(file_path)
+            popular_books(file_name)
         elif selection==3:
-            borrow_book(file_path)
+            borrow_book(file_name)
         elif selection==4:
-            return_book(file_path)
+            return_book(file_name)
         else:
-            user_history(file_path)
+            user_history(file_name)
 
 
 

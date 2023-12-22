@@ -18,10 +18,9 @@ class Book(Base):
     isbn = Column(Text, nullable=False)
     author_id = Column(Integer, ForeignKey('authors.id'), nullable=False)
     genre_id = Column(Integer, ForeignKey('genres.id'), nullable=False)
-    summary = Column(Text, nullable=False)
     review = Column(Integer, nullable=False)
-    availability = relationship('Availability', back_populates='books')
-    history=relationship('History', back_populates='books')
+    author=relationship('Author', backref='books')
+    genre=relationship('Genre', backref='books')
 
 
 
@@ -31,7 +30,6 @@ class Author(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     first_name = Column(Text)
     last_name = Column(Text)
-    books = relationship('Book', back_populates='authors')
 
 
 class Genre(Base):
@@ -39,7 +37,6 @@ class Genre(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     genre = Column(String)
-    books = relationship('Book', back_populates='genres')
 
 
 class Availability(Base):
@@ -48,6 +45,7 @@ class Availability(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     book_id = Column(Integer, ForeignKey('books.id'), nullable=False)
     available=Column(Boolean,nullable=False)
+    books = relationship('Book', backref='availability')
 
 
 class History(Base):
@@ -55,4 +53,4 @@ class History(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     book_id = Column(Integer, ForeignKey('books.id'), nullable=False)
-
+    books = relationship('Book', backref='history')
