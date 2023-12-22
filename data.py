@@ -68,8 +68,8 @@ def insert_availability(num_books,database):
     engine = create_connection(database)
     Session = sessionmaker(bind=engine)
     session = Session()
-    for _ in range(num_books):
-        new_availability = generate_fake_availability(1)
+    for i in range(num_books):
+        new_availability = generate_fake_availability(i)
         session.add(new_availability)
         session.commit()
 
