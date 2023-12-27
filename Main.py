@@ -60,12 +60,13 @@ def suggestions(database):
 
     # Groups rows by gentre_id , finds the number of the rows and reset the index and renaming size as gentre_count
     count=df.groupby('genre_id').size().reset_index(name='genre_count')
+    print(count)
 
     # Shows the row with the max number
     find_max = count['genre_count'].idxmax()
-
+    print(find_max)
     # Retrieves the row
-    favourite_genre = count.loc[find_max, 'genre_count']
+    favourite_genre = count.loc[find_max, 'genre_id']
 
     #From the books table selects all books
     query_2='SELECT * FROM books'
@@ -74,15 +75,15 @@ def suggestions(database):
     df_2=pd.read_sql_query(query_2, conn)
 
     # Filters the dataframe in order to show the rows that are equal with favourite_genre
-    same_genre_books=df_2["genre_id"] == favourite_genre
-    suggestions=df_2[same_genre_books]
+    suggestions=df_2[df_2["genre_id"] == favourite_genre]
     pd.set_option('display.max_columns', None)
 
     # Close database connection
     conn.close()
 
     # Prints suggestions
-    print(f'Below you can find our suggestions: \n{suggestions}')
+    #print(f'Below you can find our suggestions: \n{suggestions}')
+    return suggestions
 
 
 def popular_books(database):
@@ -100,11 +101,12 @@ def popular_books(database):
 
     # Finds the 5 largest from review column and displays all the columns
     top_5 = df.nlargest(5, "review")
+    print(top_5)
     pd.set_option('display.max_columns', None)
 
     # Close database connection
     conn.close()
-    print(f'Current Top 5 books: \n{top_5}')
+    return top_5
 
 
 
@@ -257,9 +259,9 @@ def main():
         selection=initial_menu()
         # Checks what input user typed and runs the selection
         if selection==1:
-            suggestions(file_name)
+            print(f'Below you can find our suggestions: \n{suggestions(file_name)}')
         elif selection==2:
-            popular_books(file_name)
+            print(f'Current Top 5 books: \n{popular_books(file_name)}')
         elif selection==3:
             borrow_book(file_name)
         elif selection==4:
