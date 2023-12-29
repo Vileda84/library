@@ -2,25 +2,24 @@ from database import *
 from data import *
 import os.path
 import pandas as pd
-import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from database_classes import *
+from sqlalchemy.exc import SQLAlchemyError
 
-def create_connection_sqlite(db_file):
-    """ create a database connection to the SQLite database
-        specified by db_file
-    :param db_file: database file
-    :return: Connection object or None
+
+def create_connection(db_path):
+    """ create a database connection
+        specified by db_path
+    :param db_path: database path
+    :return: Engine
     """
-    conn = None
     try:
-        conn = sqlite3.connect(db_file)
-        return conn
-    except Error as e:
+        engine = create_engine(db_path)
+    except SQLAlchemyError as e:
         print(e)
 
-    return conn
+    return engine
 
 
 def initial_menu():
@@ -50,7 +49,7 @@ def suggestions(database):
         database: the library database
     """
     # Create database connection
-    conn = create_connection_sqlite(database)
+    conn = create_connection(database)
 
     # Create a dataframe that contains books of the history table and their genres and names by the book table
     query = 'SELECT books.genre_id, books.name,history.book_id FROM books JOIN history ON books.id=history.book_id '
@@ -60,11 +59,9 @@ def suggestions(database):
 
     # Groups rows by gentre_id , finds the number of the rows and reset the index and renaming size as gentre_count
     count=df.groupby('genre_id').size().reset_index(name='genre_count')
-    print(count)
 
     # Shows the row with the max number
     find_max = count['genre_count'].idxmax()
-    print(find_max)
     # Retrieves the row
     favourite_genre = count.loc[find_max, 'genre_id']
 
@@ -79,10 +76,9 @@ def suggestions(database):
     pd.set_option('display.max_columns', None)
 
     # Close database connection
-    conn.close()
+    #conn.close()
 
-    # Prints suggestions
-    #print(f'Below you can find our suggestions: \n{suggestions}')
+    # Returns suggestions
     return suggestions
 
 
@@ -93,7 +89,7 @@ def popular_books(database):
         database: the library database
     """
     # Create database connection
-    conn = create_connection_sqlite(database)
+    conn = create_connection(database)
 
     # Create the books table in dataframe
     query='SELECT * FROM books'
@@ -101,11 +97,11 @@ def popular_books(database):
 
     # Finds the 5 largest from review column and displays all the columns
     top_5 = df.nlargest(5, "review")
-    print(top_5)
     pd.set_option('display.max_columns', None)
 
     # Close database connection
-    conn.close()
+    #conn.close()
+
     return top_5
 
 
@@ -119,7 +115,7 @@ def borrow_book(database):
         database: The library database
     """
     # Create database connection
-    conn=create_connection_sqlite(database)
+    conn=create_connection(database)
     # Create the availability table in dataframe
     query='SELECT * FROM availability'
     df = pd.read_sql_query(query, conn)
@@ -164,7 +160,7 @@ def borrow_book(database):
         except ValueError as e:
             print(e)
             print('You have to type a book id')
-
+    #conn.close()
 
 def return_book(database):
     """This function checks if the book_id the user inputs exists,
@@ -175,7 +171,7 @@ def return_book(database):
         database: The library database
     """
     # Create database connection
-    conn=create_connection_sqlite(database)
+    conn=create_connection(database)
 
     # Create the availability table in dataframe
     query='SELECT * FROM availability'
@@ -214,7 +210,7 @@ def return_book(database):
 
 def user_history(database):
     # Creates the database connection
-    conn=create_connection_sqlite(database)
+    conn=create_connection(database)
 
     # Creates a datatframe from a query to bring all the genres user has read
     query='SELECT genres.genre FROM history JOIN books ON history.book_id=books.id JOIN genres ON books.genre_id=genres.id '
@@ -227,7 +223,7 @@ def user_history(database):
     # Creates a bar plot with the genre stats
     sns.barplot(x='genre', y='genre_total', data=count,  hue="genre")
     plt.show()
-    conn.close()
+    #conn.close()
 
 
 
@@ -259,15 +255,15 @@ def main():
         selection=initial_menu()
         # Checks what input user typed and runs the selection
         if selection==1:
-            print(f'Below you can find our suggestions: \n{suggestions(file_name)}')
+            print(f'Below you can find our suggestions: \n{suggestions(file_path)}')
         elif selection==2:
-            print(f'Current Top 5 books: \n{popular_books(file_name)}')
+            print(f'Current Top 5 books: \n{popular_books(file_path)}')
         elif selection==3:
-            borrow_book(file_name)
+            borrow_book(file_path)
         elif selection==4:
-            return_book(file_name)
+            return_book(file_path)
         else:
-            user_history(file_name)
+            user_history(file_path)
 
     # If the library doesn't exist it creates a new one
     else:
@@ -283,15 +279,15 @@ def main():
 
             # Checks what input user typed and runs the selection
             if selection==1:
-                suggestions(file_name)
+                print(f'Below you can find our suggestions: \n{suggestions(file_path)}')
             elif selection==2:
-                popular_books(file_name)
+                print(f'Current Top 5 books: \n{popular_books(file_path)}')
             elif selection==3:
-                borrow_book(file_name)
+                borrow_book(file_path)
             elif selection==4:
-                return_book(file_name)
+                return_book(file_path)
             else:
-                user_history(file_name)
+                user_history(file_path)
         except Error as e:
             print(e)
 
