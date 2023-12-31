@@ -244,29 +244,13 @@ def add_data(database):
 def main():
     """Main function of library
     """
-    # Checking if library exists. If exists a menu will display
+
     file_path= 'sqlite:///library.db'
 
     # Extract the file path from the connection string
     file_name = file_path.split('sqlite:///')[-1]
 
-    # If file exist shows the initial menu
-    if os.path.exists(file_name):
-        selection=initial_menu()
-        # Checks what input user typed and runs the selection
-        if selection==1:
-            print(f'Below you can find our suggestions: \n{suggestions(file_path)}')
-        elif selection==2:
-            print(f'Current Top 5 books: \n{popular_books(file_path)}')
-        elif selection==3:
-            borrow_book(file_path)
-        elif selection==4:
-            return_book(file_path)
-        else:
-            user_history(file_path)
-
-    # If the library doesn't exist it creates a new one
-    else:
+    if not os.path.exists(file_name):
         try:
             # Creates tables
             Base.metadata.create_all(engine)
@@ -274,24 +258,21 @@ def main():
 
             #Adds data
             add_data(file_path)
-
-            selection=initial_menu()
-
-            # Checks what input user typed and runs the selection
-            if selection==1:
-                print(f'Below you can find our suggestions: \n{suggestions(file_path)}')
-            elif selection==2:
-                print(f'Current Top 5 books: \n{popular_books(file_path)}')
-            elif selection==3:
-                borrow_book(file_path)
-            elif selection==4:
-                return_book(file_path)
-            else:
-                user_history(file_path)
         except Error as e:
             print(e)
-
-
+    # Displays menu
+    selection=initial_menu()
+        # Checks what input user typed and runs the selection
+    if selection==1:
+        print(f'Below you can find our suggestions: \n{suggestions(file_path)}')
+    elif selection==2:
+        print(f'Current Top 5 books: \n{popular_books(file_path)}')
+    elif selection==3:
+        borrow_book(file_path)
+    elif selection==4:
+        return_book(file_path)
+    else:
+        user_history(file_path)
 
 if __name__ == '__main__':
     main()
