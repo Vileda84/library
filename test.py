@@ -1,13 +1,15 @@
 import unittest
 import pandas as pd
 from unittest.mock import patch, MagicMock
-from Main import suggestions, popular_books, borrow_book, return_book
+from main import suggestions, popular_books, borrow_book, return_book
 
 class TestSuggestions(unittest.TestCase):
 
-    @patch('Main.create_connection')
+    @patch('main.create_connection')
     @patch('pandas.read_sql_query')
     def test_suggestions(self, mock_read_sql_query, mock_create_connection):
+        """This is the unittest for the suggestions function
+        """
         # Mock the database connection
         mock_conn = MagicMock()
         mock_create_connection.return_value = mock_conn
@@ -50,9 +52,11 @@ class TestSuggestions(unittest.TestCase):
 
 
 
-    @patch('Main.create_connection')
+    @patch('main.create_connection')
     @patch('pandas.read_sql_query')
     def test_popular_books(self, mock_read_sql_query, mock_create_connection):
+        """This is the unittest for the popular_books function
+        """
         # Mock the database connection
         mock_conn = MagicMock()
         mock_create_connection.return_value = mock_conn
@@ -89,10 +93,12 @@ class TestSuggestions(unittest.TestCase):
 
 
 
-    @patch('Main.create_connection')
+    @patch('main.create_connection')
     @patch('pandas.read_sql_query')
     @patch('builtins.input', return_value='1')
     def test_borrow_book_available(self, mock_input, mock_read_sql_query, mock_create_connection):
+        """This is the unittest for the borrow_book function when a book is available
+        """
         # Mock the database connection
         mock_conn = MagicMock()
         mock_create_connection.return_value = mock_conn
@@ -126,10 +132,12 @@ class TestSuggestions(unittest.TestCase):
         }))
 
 
-    @patch('Main.create_connection')
+    @patch('main.create_connection')
     @patch('pandas.read_sql_query')
     @patch('builtins.input', return_value='2')
     def test_borrow_book_unavailable(self, mock_input, mock_read_sql_query, mock_create_connection):
+        """This is the unittest for the borrow_book function when the book is unavailable
+        """
         # Mock the database connection
         mock_conn = MagicMock()
         mock_create_connection.return_value = mock_conn
@@ -162,10 +170,13 @@ class TestSuggestions(unittest.TestCase):
             'book_id': [2, 3]
         }))
 
-    @patch('Main.create_connection')
+    @patch('main.create_connection')
     @patch('pandas.read_sql_query')
     @patch('builtins.input', return_value='1')
     def test_borrow_book_already_in_history(self, mock_input, mock_read_sql_query, mock_create_connection):
+        """This is the unittest for the borrow_book function when the book is available
+        and already in history table
+        """
         # Mock the database connection
         mock_conn = MagicMock()
         mock_create_connection.return_value = mock_conn
@@ -198,10 +209,12 @@ class TestSuggestions(unittest.TestCase):
             'book_id': [1, 3]
         }))
 
-    @patch('Main.create_connection')
+    @patch('main.create_connection')
     @patch('pandas.read_sql_query')
     @patch('builtins.input', return_value='1')
     def test_return_book(self, mock_input, mock_read_sql_query, mock_create_connection):
+        """This is the unittest for the return_book function
+        """
         # Mock the database connection
         mock_conn = MagicMock()
         mock_create_connection.return_value = mock_conn

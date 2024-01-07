@@ -1,17 +1,12 @@
-import os
-from sqlalchemy import Boolean, create_engine, Column, Integer, String, ForeignKey, Text, inspect
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, Text
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import relationship
 
-
-database_path='sqlite:///library.db'
-
-engine = create_engine(database_path, echo=True)
 
 # Parent class
 Base = declarative_base()
 
-# Child class Book table
+# Subclass Book table
 class Book(Base):
     __tablename__ = 'books'
 
@@ -25,7 +20,7 @@ class Book(Base):
     genre=relationship('Genre', backref='books')
 
 
-# Child class Author Table
+# Subclass Author Table
 class Author(Base):
     __tablename__ = 'authors'
 
@@ -33,14 +28,14 @@ class Author(Base):
     first_name = Column(Text)
     last_name = Column(Text)
 
-# Child class Genre table
+# Subclass Genre table
 class Genre(Base):
     __tablename__ = 'genres'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     genre = Column(String)
 
-# Child class Availability table
+# Subclass Availability table
 class Availability(Base):
     __tablename__ = 'availability'
 
@@ -49,7 +44,7 @@ class Availability(Base):
     available=Column(Boolean,nullable=False)
     books = relationship('Book', backref='availability')
 
-# Child class History table
+# Subclass History table
 class History(Base):
     __tablename__ = 'history'
 

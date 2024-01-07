@@ -1,4 +1,4 @@
-from database import *
+from os import error
 from data import *
 import os.path
 import pandas as pd
@@ -6,6 +6,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from database_classes import *
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import create_engine
 
 
 def create_connection(db_path):
@@ -51,7 +52,7 @@ def suggestions(database):
     # Create database connection
     conn = create_connection(database)
 
-    # Create a dataframe that contains books of the history table and their genres and names by the book table
+    # Create a query that contains books of the history table and their genres and names by the book table
     query = 'SELECT books.genre_id, books.name,history.book_id FROM books JOIN history ON books.id=history.book_id '
 
     # Creates a dataframe from the query
@@ -75,8 +76,6 @@ def suggestions(database):
     suggestions=df_2[df_2["genre_id"] == favourite_genre]
     pd.set_option('display.max_columns', None)
 
-    # Close database connection
-    #conn.close()
 
     # Returns suggestions
     return suggestions
@@ -98,9 +97,6 @@ def popular_books(database):
     # Finds the 5 largest from review column and displays all the columns
     top_5 = df.nlargest(5, "review")
     pd.set_option('display.max_columns', None)
-
-    # Close database connection
-    #conn.close()
 
     return top_5
 
@@ -160,7 +156,6 @@ def borrow_book(database):
         except ValueError as e:
             print(e)
             print('You have to type a book id')
-    #conn.close()
 
 def return_book(database):
     """This function checks if the book_id the user inputs exists,
@@ -215,7 +210,6 @@ def user_history(database):
     # Creates a datatframe from a query to bring all the genres user has read
     query='SELECT genres.genre FROM history JOIN books ON history.book_id=books.id JOIN genres ON books.genre_id=genres.id '
     df = pd.read_sql_query(query, conn)
-    print(df)
 
     # Groups rows by gentre , finds the number of the rows and reset the index and renaming size as gentre_total
     count=df.groupby('genre').size().reset_index(name='genre_total')
@@ -223,21 +217,20 @@ def user_history(database):
     # Creates a bar plot with the genre stats
     sns.barplot(x='genre', y='genre_total', data=count,  hue="genre")
     plt.show()
-    #conn.close()
 
 
 
-def add_data(database):
+def add_data(engine):
     """Inserts all the data on the created tables
 
     Args:
         database: The library database
     """
-    insert_books(50,database)
-    insert_availability(50,database)
-    insert_authors(10,database)
-    insert_genres(5,database)
-    insert_user_history(10,database)
+    insert_books(50,engine)
+    insert_availability(50,engine)
+    insert_authors(10,engine)
+    insert_genres(5,engine)
+    insert_user_history(10,engine)
     print('Database has been updated')
 
 
@@ -253,16 +246,17 @@ def main():
     if not os.path.exists(file_name):
         try:
             # Creates tables
+            engine = create_engine(file_path, echo=True)
             Base.metadata.create_all(engine)
             print('Database has been created')
 
             #Adds data
-            add_data(file_path)
-        except Error as e:
+            add_data(engine)
+        except error as e:
             print(e)
     # Displays menu
     selection=initial_menu()
-        # Checks what input user typed and runs the selection
+    # Checks what input user typed and runs the selection
     if selection==1:
         print(f'Below you can find our suggestions: \n{suggestions(file_path)}')
     elif selection==2:

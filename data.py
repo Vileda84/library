@@ -1,17 +1,9 @@
 from faker import Faker
 import random
 from database_classes import *
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import sessionmaker
 
-def create_connection(database_path):
-    """ create a database connection to the database
-        specified by database_path
-    :param database_path: database file
-    :return: Connection object or None
-    """
-    engine = create_engine(database_path, echo=True)
-    return engine
+
 
 def generate_fake_book():
     """Creates fake data for books table
@@ -32,13 +24,12 @@ def generate_fake_book():
             review=fake_review
         )
 
-def insert_books(num_books,database):
+def insert_books(num_books,engine):
     """Inserts the data on books table
 
     Args:
         num_books (integer):number of rows
     """
-    engine = create_connection(database)
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -59,13 +50,12 @@ def generate_fake_availability(i):
         available=fake_available
     )
 
-def insert_availability(num_books,database):
+def insert_availability(num_books,engine):
     """Inserts the data on availabilty table
 
     Args:
         num_books (integer):number of rows
     """
-    engine = create_connection(database)
     Session = sessionmaker(bind=engine)
     session = Session()
     for i in range(num_books):
@@ -87,13 +77,12 @@ def generate_fake_author():
         last_name=fake_last_name
     )
 
-def insert_authors(num_authors,database):
+def insert_authors(num_authors,engine):
     """Inserts the data on authors table
 
     Args:
         num_authors (integer):number of rows
     """
-    engine = create_connection(database)
     Session = sessionmaker(bind=engine)
     session = Session()
     for _ in range(num_authors):
@@ -112,13 +101,12 @@ def generate_fake_genre():
         genre=fake_name
     )
 
-def insert_genres(num_genres,database):
+def insert_genres(num_genres,engine):
     """Inserts the data on books table
 
     Args:
         num_books (integer):number of rows
     """
-    engine = create_connection(database)
     Session = sessionmaker(bind=engine)
     session = Session()
     for _ in range(num_genres):
@@ -136,14 +124,12 @@ def generate_fake_user_history():
         book_id=fake_book_id
     )
 
-def insert_user_history(num_books,database):
+def insert_user_history(num_books,engine):
     """Inserts the data on books table
 
     Args:
         num_books (integer):number of rows
     """
-    database ='sqlite:///library.db'
-    engine = create_connection(database)
     Session = sessionmaker(bind=engine)
     session = Session()
     for _ in range(num_books):
